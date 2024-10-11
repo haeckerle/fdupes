@@ -773,12 +773,28 @@ file_t **checkmatch(filetree_t **root, filetree_t *checktree, file_t *file)
   }
 }
 
+static void human_readable_size(long long int size, char* buf, size_t len) {
+    const char *units[] = {"B", "kB", "MB", "GB"};
+    double readable_size = size;
+    int unit_index = 0;
+
+    while (readable_size >= 1024 && unit_index < 3) {
+        readable_size /= 1024;
+        unit_index++;
+    }
+
+    if (buf != NULL) {
+        snprintf(buf, len, "%.0f %s", readable_size, units[unit_index]);
+    }
+}
+
 void summarizematches(file_t *files)
 {
   int numsets = 0;
   double numbytes = 0.0;
   int numfiles = 0;
   file_t *tmpfile;
+  char size_str[20];
 
   while (files != NULL)
   {
@@ -798,33 +814,32 @@ void summarizematches(file_t *files)
     files = files->next;
   }
 
-  if (numsets == 0)
-    printf("No duplicates found.\n\n");
-  else
+  if (numsets > 0)
   {
-    if (numbytes < 1024.0)
-      printf("%d duplicate files (in %d sets), occupying %.0f bytes.\n\n", numfiles, numsets, numbytes);
-    else if (numbytes <= (1000.0 * 1000.0))
-      printf("%d duplicate files (in %d sets), occupying %.1f kilobytes\n\n", numfiles, numsets, numbytes / 1000.0);
-    else
-      printf("%d duplicate files (in %d sets), occupying %.1f megabytes\n\n", numfiles, numsets, numbytes / (1000.0 * 1000.0));
- 
+    human_readable_size((long long int)numbytes,size_str,sizeof(size_str));
+    printf("found %d in %d files (%s)\n\n", numfiles, numsets, size_str);
   }
 }
 
 void printmatches(file_t *files)
 {
   file_t *tmpfile;
+  char size_str[20];
 
   while (files != NULL) {
     if (files->hasdupes) {
       if (!ISFLAG(flags, F_OMITFIRST)) {
-	if (ISFLAG(flags, F_SHOWSIZE)) printf("%lld byte%seach:\n", (long long int)files->size,
-	 (files->size != 1) ? "s " : " ");
+	      if (ISFLAG(flags, F_SHOWSIZE)) {
+          printf("%14lld\t", (long long int)files->size);
+        }
+        if (ISFLAG(flags, F_SHOWSIZE_SIMPLE)) {
+          human_readable_size((long long int)files->size,size_str,sizeof(size_str));
+          printf("%s\t", size_str);
+        }
         if (ISFLAG(flags, F_SHOWTIME))
           printf("%s ", fmttime(files->mtime));
-	if (ISFLAG(flags, F_DSAMELINE)) escapefilename("\\ ", &files->d_name);
-	printf("%s%c", files->d_name, ISFLAG(flags, F_DSAMELINE)?' ':'\n');
+	      if (ISFLAG(flags, F_DSAMELINE)) escapefilename("\\ ", &files->d_name);
+	      printf("%s%c", files->d_name, ISFLAG(flags, F_DSAMELINE)?' ':'\n');
       }
       tmpfile = files->duplicates;
       while (tmpfile != NULL) {
@@ -1516,7 +1531,7 @@ int main(int argc, char **argv) {
 
   oldargv = cloneargs(argc, argv);
 
-  while ((opt = GETOPT(argc, argv, "frRq1StsHG:L:nAdPvhNImpo:il:Dcx:"
+  while ((opt = GETOPT(argc, argv, "frRq1SatsHG:L:nAdPvhNImpo:il:Dcx:"
 #ifdef HAVE_GETOPT_H
           , long_options, NULL
 #endif
@@ -1540,6 +1555,9 @@ int main(int argc, char **argv) {
     case 'S':
       SETFLAG(flags, F_SHOWSIZE);
       break;
+    case 'a':
+      SETFLAG(flags, F_SHOWSIZE_SIMPLE);
+      break;      
     case 't':
       SETFLAG(flags, F_SHOWTIME);
       break;
@@ -1920,11 +1938,11 @@ int main(int argc, char **argv) {
 
   else 
 
-    if (ISFLAG(flags, F_SUMMARIZEMATCHES))
+    if (ISFLAG(flags, F_SUMMARIZEMATCHES)) {
+      printmatches(files);
       summarizematches(files);
-      
+    }
     else
-
       printmatches(files);
 
   while (files) {

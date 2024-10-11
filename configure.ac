@@ -1,4 +1,4 @@
-AC_INIT([fdupes], [2.3.2])
+AC_INIT([fdupes],[2.3.2])
 
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 
@@ -31,13 +31,13 @@ AC_CHECK_HEADERS([getopt.h ncursesw/curses.h])
 AS_IF([test x"$with_ncurses" != x"no"],
 	[PKG_CHECK_MODULES([NCURSES], [ncursesw],
 		[LIBS="$LIBS $NCURSES_LIBS"],
-		[AC_SEARCH_LIBS([wget_wch], [ncursesw ncurses curses], [], [AC_ERROR([ncurses library not found (or lacks wide character support)])])]
-		[AC_SEARCH_LIBS([keypad], [ncursesw tinfow ncurses tinfo curses], [], [AC_ERROR([ncurses library not found (lacks keypad support)])])]
+		[AC_SEARCH_LIBS([wget_wch], [ncursesw ncurses curses], [], [AC_MSG_ERROR(ncurses library not found (or lacks wide character support))])]
+		[AC_SEARCH_LIBS([keypad], [ncursesw tinfow ncurses tinfo curses], [], [AC_MSG_ERROR(ncurses library not found (lacks keypad support))])]
 	)]
 	[AC_DEFINE([_XOPEN_SOURCE], [700], [enable certain X/Open and POSIX features])]
 	[AC_DEFINE([_XOPEN_SOURCE_EXTENDED], [], [enable certain functions in curses.h])]
 	[AC_DEFINE([_ISOC99_SOURCE], [], [enable strtoll])]
-	[AC_SEARCH_LIBS([pcre2_match_32], [pcre2-32], [], [AC_ERROR([pcre2 library not found])])]
+	[AC_SEARCH_LIBS([pcre2_match_32], [pcre2-32], [], [AC_MSG_ERROR(pcre2 library not found)])]
 	[AC_DEFINE([PCRE2_CODE_UNIT_WIDTH], [32], [PCRE2 Code Unit Width])],
 
 	[AC_DEFINE([NO_NCURSES], [], [Do not compile against ncurses])]
@@ -51,7 +51,7 @@ AM_CONDITIONAL([WITH_NCURSES], [test x"$with_ncurses" != x"no"])
 AC_ARG_WITH([sqlite], AS_HELP_STRING([--without-sqlite], [Do not use sqlite database]))
 
 AS_IF([test x"$with_sqlite" != x"no"],
-	[AC_SEARCH_LIBS([sqlite3_prepare_v2], [sqlite3], [], [AC_ERROR([sqlite3 library not found])])],
+	[AC_SEARCH_LIBS([sqlite3_prepare_v2], [sqlite3], [], [AC_MSG_ERROR(sqlite3 library not found)])],
 
 	[AC_DEFINE([NO_SQLITE], [], [Do not compile against sqlite])]
 	)

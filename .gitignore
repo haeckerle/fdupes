@@ -17,3 +17,8 @@ fdupes
 /stamp-h1
 .deps
 .dirstamp
+configure.ac
+.vscode/launch.json
+configure.ac
+configure.ac~
+configure~
