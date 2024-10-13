@@ -817,7 +817,7 @@ void summarizematches(file_t *files)
   if (numsets > 0)
   {
     human_readable_size((long long int)numbytes,size_str,sizeof(size_str));
-    printf("found %d in %d files (%s)\n\n", numfiles, numsets, size_str);
+    printf("found %d duplicates of %d files (%s)\n\n", numfiles, numsets, size_str);
   }
 }
 
@@ -830,7 +830,7 @@ void printmatches(file_t *files)
     if (files->hasdupes) {
       if (!ISFLAG(flags, F_OMITFIRST)) {
 	      if (ISFLAG(flags, F_SHOWSIZE)) {
-          printf("%14lld\t", (long long int)files->size);
+          printf("%14lld ", (long long int)files->size);
         }
         if (ISFLAG(flags, F_SHOWSIZE_SIMPLE)) {
           human_readable_size((long long int)files->size,size_str,sizeof(size_str));
@@ -846,7 +846,14 @@ void printmatches(file_t *files)
         if (ISFLAG(flags, F_SHOWTIME))
           printf("%s ", fmttime(tmpfile->mtime));
 	if (ISFLAG(flags, F_DSAMELINE)) escapefilename("\\ ", &tmpfile->d_name);
-	printf("%s%c", tmpfile->d_name, ISFLAG(flags, F_DSAMELINE)?' ':'\n');
+	if (ISFLAG(flags, F_SHOWSIZE_SIMPLE)) {
+    printf("\t%s%c", tmpfile->d_name, ISFLAG(flags, F_DSAMELINE)?' ':'\n');
+  }
+  else if (ISFLAG(flags, F_SHOWSIZE)) {
+    printf("               %s%c", tmpfile->d_name, ISFLAG(flags, F_DSAMELINE)?' ':'\n');
+  }
+  else
+    printf("%s%c", tmpfile->d_name, ISFLAG(flags, F_DSAMELINE)?' ':'\n');
 	tmpfile = tmpfile->duplicates;
       }
       printf("\n");
